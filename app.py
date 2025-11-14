@@ -47,18 +47,25 @@ input_data = pd.DataFrame({
     "BMI": [bmi]
 })
 
-# One-hot encoding
+# ------------------------------
+# FINAL FIXED ONE-HOT ENCODING
+# ------------------------------
+input_data = input_data.astype(str)
 input_encoded = pd.get_dummies(input_data)
 
-# FIX: Make sure ALL training columns exist
-for col in training_columns:
-    if col not in input_encoded.columns:
-        input_encoded[col] = 0
+missing_cols = set(training_columns) - set(input_encoded.columns)
+for col in missing_cols:
+    input_encoded[col] = 0
 
-# FIX: Keep only training columns (avoid KeyError)
+extra_cols = set(input_encoded.columns) - set(training_columns)
+if extra_cols:
+    input_encoded = input_encoded.drop(columns=extra_cols)
+
 input_encoded = input_encoded.reindex(columns=training_columns, fill_value=0)
+# ------------------------------
 
 # Predict
 if st.button("Predict"):
     prediction = model.predict(input_encoded)[0]
     st.success(f"Predicted Obesity Level: **{prediction}**")
+
